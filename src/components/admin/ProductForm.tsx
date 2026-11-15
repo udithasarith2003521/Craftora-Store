@@ -162,7 +162,12 @@ export function ProductForm({ initialData, mode, secretPath }: ProductFormProps)
       toast.error('Product description is required');
       return;
     }
-    if (!coverImageUrl) {
+    const effectiveCover =
+      coverImageUrl && images.includes(coverImageUrl)
+        ? coverImageUrl
+        : images[0] || coverImageUrl;
+
+    if (!effectiveCover) {
       toast.error('A cover image is required');
       return;
     }
@@ -184,7 +189,7 @@ export function ProductForm({ initialData, mode, secretPath }: ProductFormProps)
       fileName,
       fileSize,
       fileType,
-      coverImageUrl,
+      coverImageUrl: effectiveCover,
       images,
       status,
     };
@@ -383,7 +388,12 @@ export function ProductForm({ initialData, mode, secretPath }: ProductFormProps)
               coverImageUrl={coverImageUrl}
               onCoverChange={setCoverImageUrl}
               images={images}
-              onImagesChange={setImages}
+              onImagesChange={(urls) => {
+                setImages(urls);
+                if (!urls.includes(coverImageUrl)) {
+                  setCoverImageUrl(urls[0] || '');
+                }
+              }}
             />
           </div>
 

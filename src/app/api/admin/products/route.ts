@@ -90,6 +90,13 @@ export async function POST(request: Request) {
       status,
     } = parsed.data;
 
+    // Sanitize images and coverImageUrl to reject any local blob: URLs
+    const sanitizedImages = (images || []).filter((img) => !img.startsWith('blob:'));
+    let sanitizedCover = coverImageUrl;
+    if (sanitizedCover.startsWith('blob:') || (sanitizedImages.length > 0 && !sanitizedImages.includes(sanitizedCover))) {
+      sanitizedCover = sanitizedImages[0] || sanitizedCover;
+    }
+
     // Check slug uniqueness
     const existing = await db.select().from(products).where(eq(products.slug, slug)).limit(1);
     if (existing.length > 0) {
@@ -113,7 +120,7 @@ export async function POST(request: Request) {
         fileName,
         fileSize,
         fileType,
-        coverImageUrl,
+        coverImageUrl: sanitizedCover,
         status: status || 'published',
       })
       .returning();
@@ -121,9 +128,9 @@ export async function POST(request: Request) {
     const newProduct = inserted[0];
 
     // Insert gallery images if provided
-    if (images && images.length > 0) {
+    if (sanitizedImages.length > 0) {
       await db.insert(productImages).values(
-        images.map((url, idx) => ({
+        sanitizedImages.map((url, idx) => ({
           productId: newProduct.id,
           url,
           sortOrder: idx,

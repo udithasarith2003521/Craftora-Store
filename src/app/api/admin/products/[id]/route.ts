@@ -97,6 +97,13 @@ export async function PUT(
       status,
     } = parsed.data;
 
+    // Sanitize images and coverImageUrl to reject any local blob: URLs
+    const sanitizedImages = (images || []).filter((img) => !img.startsWith('blob:'));
+    let sanitizedCover = coverImageUrl;
+    if (sanitizedCover.startsWith('blob:') || (sanitizedImages.length > 0 && !sanitizedImages.includes(sanitizedCover))) {
+      sanitizedCover = sanitizedImages[0] || sanitizedCover;
+    }
+
     // Check slug collision with other products
     const slugCheck = await db.select().from(products).where(eq(products.slug, slug)).limit(1);
     if (slugCheck.length > 0 && slugCheck[0].id !== id) {
@@ -111,13 +118,13 @@ export async function PUT(
     if (oldProduct.fileUrl !== fileUrl && isBlobStorageUrl(oldProduct.fileUrl)) {
       blobsToDelete.push(oldProduct.fileUrl);
     }
-    if (oldProduct.coverImageUrl !== coverImageUrl && isBlobStorageUrl(oldProduct.coverImageUrl)) {
+    if (oldProduct.coverImageUrl !== sanitizedCover && isBlobStorageUrl(oldProduct.coverImageUrl)) {
       blobsToDelete.push(oldProduct.coverImageUrl);
     }
 
     // Existing gallery images
     const oldImages = await db.select().from(productImages).where(eq(productImages.productId, id));
-    const newImageSet = new Set(images || []);
+    const newImageSet = new Set(sanitizedImages);
     for (const oldImg of oldImages) {
       if (!newImageSet.has(oldImg.url) && isBlobStorageUrl(oldImg.url)) {
         blobsToDelete.push(oldImg.url);
@@ -146,7 +153,7 @@ export async function PUT(
         fileName,
         fileSize,
         fileType,
-        coverImageUrl,
+        coverImageUrl: sanitizedCover,
         status: status || 'published',
         updatedAt: new Date(),
       })
@@ -155,9 +162,9 @@ export async function PUT(
 
     // Re-insert product images
     await db.delete(productImages).where(eq(productImages.productId, id));
-    if (images && images.length > 0) {
+    if (sanitizedImages.length > 0) {
       await db.insert(productImages).values(
-        images.map((url, idx) => ({
+        sanitizedImages.map((url, idx) => ({
           productId: id,
           url,
           sortOrder: idx,

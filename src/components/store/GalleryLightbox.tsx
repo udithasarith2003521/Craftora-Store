@@ -12,11 +12,19 @@ interface GalleryLightboxProps {
 }
 
 export function GalleryLightbox({ coverImage, images, title }: GalleryLightboxProps) {
-  // Combine cover image (first) and other images
-  const allImages = [
-    formatImageUrl(coverImage),
-    ...images.map((img) => formatImageUrl(img.url)).filter((url) => url !== formatImageUrl(coverImage)),
-  ].filter(Boolean);
+  // Clean valid image URLs (filter out broken/local blob: URLs and deduplicate)
+  const validCover =
+    coverImage && !coverImage.startsWith('blob:') ? formatImageUrl(coverImage) : null;
+  const validImages = images
+    .map((img) => formatImageUrl(img.url))
+    .filter((url) => url && !url.startsWith('blob:'));
+
+  const allImages = Array.from(
+    new Set([
+      ...(validCover ? [validCover] : []),
+      ...validImages,
+    ])
+  );
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);

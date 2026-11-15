@@ -3,7 +3,10 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 import { memoryDb } from './memory-db';
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.STORAGE_URL;
 
 const isLivePostgresUrl =
   Boolean(databaseUrl) &&

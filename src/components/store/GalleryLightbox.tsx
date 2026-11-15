@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Maximize2, X, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { formatImageUrl } from '@/lib/utils';
 
 interface GalleryLightboxProps {
   coverImage: string;
@@ -13,9 +14,9 @@ interface GalleryLightboxProps {
 export function GalleryLightbox({ coverImage, images, title }: GalleryLightboxProps) {
   // Combine cover image (first) and other images
   const allImages = [
-    coverImage,
-    ...images.map((img) => img.url).filter((url) => url !== coverImage),
-  ];
+    formatImageUrl(coverImage),
+    ...images.map((img) => formatImageUrl(img.url)).filter((url) => url !== formatImageUrl(coverImage)),
+  ].filter(Boolean);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);

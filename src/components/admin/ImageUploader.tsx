@@ -3,8 +3,9 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { upload } from '@vercel/blob/client';
-import { UploadCloud, X, Star, ArrowLeft, ArrowRight, Loader2, Image as ImageIcon } from 'lucide-react';
+import { UploadCloud, X, Star, ArrowLeft, ArrowRight, Loader2, Image as ImageIcon, Link2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatImageUrl } from '@/lib/utils';
 
 interface ImageUploaderProps {
   coverImageUrl: string;
@@ -21,7 +22,28 @@ export function ImageUploader({
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [urlInput, setUrlInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+
+    if (images.length >= 10) {
+      toast.error('Maximum 10 images allowed per product');
+      return;
+    }
+
+    const formatted = formatImageUrl(trimmed);
+    const updated = [...images, formatted];
+    onImagesChange(updated);
+    if (!coverImageUrl) {
+      onCoverChange(formatted);
+    }
+    setUrlInput('');
+    toast.success('Image added successfully');
+  };
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -63,14 +85,9 @@ export function ImageUploader({
         toast.success(`Uploaded ${file.name}`);
       } catch (err: any) {
         console.error('Image upload error:', err);
-        // Fallback for local mock/demo if Blob token is not yet configured
-        if (err?.message?.includes('mock') || !process.env.BLOB_READ_WRITE_TOKEN) {
-          const mockUrl = URL.createObjectURL(file);
-          uploadedUrls.push(mockUrl);
-          toast.success(`Uploaded local preview for ${file.name}`);
-        } else {
-          toast.error(`Failed to upload ${file.name}: ${err?.message || 'Upload error'}`);
-        }
+        toast.error(
+          `Failed to upload ${file.name}. Please ensure Vercel Blob Storage is created in Vercel Storage tab, or add image using direct URL.`
+        );
       }
     }
 
@@ -149,7 +166,27 @@ export function ImageUploader({
         </div>
       </div>
 
-      {/* Image Previews Grid */}
+      {/* Or Paste Direct Image URL */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+          <input
+            type="url"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            placeholder="Or paste image URL / Google Drive image link..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background-surface/80 border border-border-subtle focus:border-cyan-accent focus:outline-none text-xs font-mono text-text-primary placeholder:text-text-muted/60"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={handleAddUrl}
+          className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-heading font-semibold flex items-center gap-1.5 transition-colors shadow-neon-blue shrink-0"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add URL</span>
+        </button>
+      </div>
       {images.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {images.map((url, idx) => {

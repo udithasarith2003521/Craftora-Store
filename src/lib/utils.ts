@@ -44,6 +44,15 @@ export function getGoogleDriveFileId(url: string): string | null {
   return match && match[1] ? match[1] : null;
 }
 
+export function formatImageUrl(url: string): string {
+  if (!url) return '';
+  const driveId = getGoogleDriveFileId(url);
+  if (driveId) {
+    return `https://drive.google.com/uc?export=view&id=${driveId}`;
+  }
+  return url;
+}
+
 export function formatDownloadUrl(url: string): string {
   try {
     const driveId = getGoogleDriveFileId(url);

@@ -1,9 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Download, FileBox, Eye, Layers } from 'lucide-react';
-import { formatBytes } from '@/lib/utils';
+import { formatBytes, formatImageUrl } from '@/lib/utils';
 import type { Product, Category } from '@/db/schema';
 
 interface ProductCardProps {
@@ -12,6 +13,9 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, category }: ProductCardProps) {
+  const [imgError, setImgError] = useState(false);
+  const imageUrl = formatImageUrl(product.coverImageUrl);
+
   return (
     <div className="group relative rounded-2xl glass-panel glass-panel-hover flex flex-col overflow-hidden transition-all duration-300">
       {/* Cover Image Container */}
@@ -19,13 +23,14 @@ export function ProductCard({ product, category }: ProductCardProps) {
         href={`/product/${product.slug}`}
         className="relative aspect-video w-full overflow-hidden bg-background-elevated block"
       >
-        {product.coverImageUrl ? (
+        {imageUrl && !imgError ? (
           <Image
-            src={product.coverImageUrl}
+            src={imageUrl}
             alt={product.title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-background-elevated text-text-muted">

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Rajdhani, Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'sonner';
+import { CursorSpotlight } from '@/components/store/CursorSpotlight';
 
 const rajdhani = Rajdhani({
   subsets: ['latin'],
@@ -40,6 +41,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${rajdhani.variable} ${inter.variable} dark`}>
       <body className="min-h-screen bg-background text-text-primary antialiased bg-cyber-grid selection:bg-cyan-accent selection:text-background">
+        {/* Interactive Cyber Cursor Spotlight */}
+        <CursorSpotlight />
+
         {/* Ambient radial glows */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
           <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-primary/20 blur-[140px] rounded-full animate-pulse-slow" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { Sparkles, Terminal, DownloadCloud, ShieldCheck, Cpu } from 'lucide-react';
 
 interface HeroProps {
@@ -10,7 +10,7 @@ interface HeroProps {
   onSearchChange: (query: string) => void;
 }
 
-// Easing curve inspired by Grilled Pixels / Awwwards (snappy start, ultra smooth ease-out)
+// Easing curve inspired by Grilled Pixels / Awwwards
 const easeSmooth = [0.16, 1, 0.3, 1];
 
 const containerVariants = {
@@ -43,10 +43,18 @@ export function Hero({
   searchQuery,
   onSearchChange,
 }: HeroProps) {
+  const { scrollY } = useScroll();
+
+  // Scroll parallax transforms
+  const heroContentY = useTransform(scrollY, [0, 500], [0, 100]);
+  const heroOpacity = useTransform(scrollY, [0, 400], [1, 0.2]);
+  const orbsY = useTransform(scrollY, [0, 500], [0, -80]);
+
   return (
     <section className="relative overflow-hidden py-18 sm:py-26 border-b border-border-subtle bg-radial-glow">
-      {/* Ambient Breathing Glow Orbs */}
+      {/* Ambient Breathing Glow Orbs with Scroll Parallax */}
       <motion.div
+        style={{ y: orbsY }}
         className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-primary/20 blur-[130px] rounded-full"
         animate={{
           scale: [1, 1.15, 1],
@@ -59,6 +67,7 @@ export function Hero({
         }}
       />
       <motion.div
+        style={{ y: orbsY }}
         className="pointer-events-none absolute top-1/3 -right-20 w-[400px] h-[300px] bg-cyan-accent/15 blur-[120px] rounded-full"
         animate={{
           scale: [1, 1.2, 1],
@@ -73,6 +82,7 @@ export function Hero({
       />
 
       <motion.div
+        style={{ y: heroContentY, opacity: heroOpacity }}
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10"
         variants={containerVariants}
         initial="hidden"
@@ -81,7 +91,7 @@ export function Hero({
         {/* Floating Glowing Cyber Badge */}
         <motion.div variants={itemFadeUp} className="inline-block mb-6">
           <motion.div
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-cyan-accent/35 bg-background-surface/80 backdrop-blur-md shadow-neon-blue"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-cyan-accent/35 bg-background-surface/80 backdrop-blur-md shadow-neon-blue cursor-default"
             animate={{
               y: [-4, 4, -4],
             }}

@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import type { Category } from '@/db/schema';
 
 interface CategoryFilterProps {
@@ -13,35 +14,43 @@ export function CategoryFilter({
   selectedCategory,
   onSelectCategory,
 }: CategoryFilterProps) {
+  const allItems = [
+    { id: 'all', name: 'All Artifacts', slug: null },
+    ...categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })),
+  ];
+
   return (
     <div className="flex items-center gap-2 overflow-x-auto py-2 scrollbar-none" id="categories">
-      <button
-        onClick={() => onSelectCategory(null)}
-        type="button"
-        className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
-          selectedCategory === null
-            ? 'bg-cyan-accent text-background-deep shadow-neon-cyan'
-            : 'bg-background-surface/80 text-text-secondary border border-border-subtle hover:border-cyan-accent/50 hover:text-text-primary'
-        }`}
-      >
-        All Artifacts
-      </button>
+      {allItems.map((item) => {
+        const isSelected = selectedCategory === item.slug;
 
-      {categories.map((cat) => {
-        const isSelected = selectedCategory === cat.slug;
         return (
-          <button
-            key={cat.id}
-            onClick={() => onSelectCategory(cat.slug)}
+          <motion.button
+            key={item.id}
+            onClick={() => onSelectCategory(item.slug)}
             type="button"
-            className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.95 }}
+            className={`relative px-4 py-2 rounded-xl text-xs font-mono font-semibold uppercase tracking-wider transition-colors whitespace-nowrap ${
               isSelected
-                ? 'bg-cyan-accent text-background-deep shadow-neon-cyan'
-                : 'bg-background-surface/80 text-text-secondary border border-border-subtle hover:border-cyan-accent/50 hover:text-text-primary'
+                ? 'text-background-deep font-bold'
+                : 'text-text-secondary hover:text-text-primary bg-background-surface/60 border border-border-subtle hover:border-cyan-accent/40'
             }`}
           >
-            {cat.name}
-          </button>
+            {/* Sliding Glowing Pill Indicator */}
+            {isSelected && (
+              <motion.div
+                layoutId="activeCategoryPill"
+                className="absolute inset-0 rounded-xl bg-cyan-accent shadow-neon-cyan"
+                transition={{
+                  type: 'spring',
+                  stiffness: 450,
+                  damping: 32,
+                }}
+              />
+            )}
+            <span className="relative z-10">{item.name}</span>
+          </motion.button>
         );
       })}
     </div>

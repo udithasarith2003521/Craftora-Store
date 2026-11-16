@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Hero } from '@/components/store/Hero';
+import { MarqueeTicker } from '@/components/store/MarqueeTicker';
 import { CategoryFilter } from '@/components/store/CategoryFilter';
 import { ProductCard } from '@/components/store/ProductCard';
 import type { Product, Category } from '@/db/schema';
-import { ArrowUpDown, Search, PackageOpen } from 'lucide-react';
+import { ArrowUpDown, PackageOpen } from 'lucide-react';
 
 interface StoreClientProps {
   initialProducts: (Product & { category?: Category | null })[];
@@ -66,10 +68,13 @@ export function StoreClient({
         onSearchChange={setSearchQuery}
       />
 
+      {/* Infinite Cybernetic Marquee Ticker */}
+      <MarqueeTicker />
+
       {/* Main Catalog View */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full" id="featured">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 w-full" id="featured">
         {/* Filter and Sort Toolbar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 mb-8 border-b border-border-subtle">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 mb-8 border-b border-border-subtle/80">
           <CategoryFilter
             categories={categories}
             selectedCategory={selectedCategory}
@@ -78,14 +83,14 @@ export function StoreClient({
 
           {/* Sort Selector */}
           <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
-            <span className="text-xs font-mono text-text-muted flex items-center gap-1">
-              <ArrowUpDown className="w-3.5 h-3.5" />
+            <span className="text-xs font-mono text-text-muted flex items-center gap-1.5">
+              <ArrowUpDown className="w-3.5 h-3.5 text-cyan-accent" />
               <span>Sort By:</span>
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-1.5 rounded-xl bg-background-surface/80 border border-border-subtle focus:border-cyan-accent focus:outline-none text-xs font-mono text-text-primary"
+              className="px-3.5 py-1.5 rounded-xl bg-background-surface/80 border border-border-subtle focus:border-cyan-accent focus:outline-none text-xs font-mono text-text-primary transition-colors cursor-pointer"
             >
               <option value="newest">Newest First</option>
               <option value="downloads">Most Downloaded</option>
@@ -94,25 +99,29 @@ export function StoreClient({
           </div>
         </div>
 
-        {/* Results Count */}
-        <div className="flex items-center justify-between mb-6 text-xs font-mono text-text-muted">
+        {/* Results Count & Quick Reset */}
+        <div className="flex items-center justify-between mb-8 text-xs font-mono text-text-muted">
           <span>
-            Displaying <strong className="text-cyan-accent">{filteredProducts.length}</strong> of{' '}
+            Displaying <strong className="text-cyan-accent font-bold">{filteredProducts.length}</strong> of{' '}
             {initialProducts.length} artifacts
           </span>
           {selectedCategory && (
             <button
               onClick={() => setSelectedCategory(null)}
-              className="text-cyan-accent hover:underline"
+              className="text-cyan-accent hover:underline flex items-center gap-1 transition-colors"
             >
               Reset category filter
             </button>
           )}
         </div>
 
-        {/* Products Grid */}
+        {/* Products Grid with Layout Animation */}
         {filteredProducts.length === 0 ? (
-          <div className="py-20 text-center glass-panel rounded-2xl border border-border-subtle p-8 max-w-md mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="py-20 text-center glass-panel rounded-2xl border border-border-subtle p-8 max-w-md mx-auto"
+          >
             <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-cyan-accent/10 border border-cyan-accent/30 flex items-center justify-center text-cyan-accent shadow-neon-blue">
               <PackageOpen className="w-7 h-7" />
             </div>
@@ -128,21 +137,24 @@ export function StoreClient({
                 setSearchQuery('');
                 setSelectedCategory(null);
               }}
-              className="px-4 py-2 rounded-xl bg-cyan-blue-gradient text-white text-xs font-mono font-semibold uppercase tracking-wider"
+              className="px-4 py-2 rounded-xl bg-cyan-blue-gradient text-white text-xs font-mono font-semibold uppercase tracking-wider shadow-neon-blue hover:shadow-neon-cyan transition-all"
             >
               Reset Filters
             </button>
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                category={product.category}
-              />
-            ))}
-          </div>
+          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence mode="popLayout">
+              {filteredProducts.map((product, idx) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  category={product.category}
+                  index={idx}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </section>
     </>

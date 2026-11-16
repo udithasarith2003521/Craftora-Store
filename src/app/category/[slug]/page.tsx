@@ -112,8 +112,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {published.map((p: any) => (
-                <ProductCard key={p.id} product={p} category={p.category} />
+              {published.map((p: any, idx: number) => (
+                <ProductCard key={p.id} product={p} category={p.category} index={idx} />
               ))}
             </div>
           )}
